@@ -1,0 +1,90 @@
+// Prisma schema for the RAG Document Chatbot.
+//
+// The `embedding` field on DocumentChunk uses `Unsupported("vector(1536)")`
+// because Prisma Client has no native pgvector type. That means Prisma
+// migrations will create the column correctly, but reading/writing the
+// embedding values themselves happens through raw SQL
+// (see src/lib/embeddings, src/lib/retrieval) rather than the normal
+// Prisma Client API. This is the standard, documented way to use pgvector
+// with Prisma today. See docs/DATABASE.md for the full explanation.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum DocumentStatus {
+  PROCESSING // upload accepted, extraction/chunking/embedding in progress
+  READY      // fully ingested and searchable
+  FAILED     // ingestion failed (see Document.errorMessage)
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+}
+
+model Document {
+  id           String         @id @default(cuid())
+  fileName     String
+  fileType     String // "pdf" | "txt"
+  fileSize     Int // bytes, validated on upload
+  status       DocumentStatus @default(PROCESSING)
+  pageCount    Int? // known for PDFs, null for plain text
+  errorMessage String? // populated when status = FAILED
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  chunks DocumentChunk[]
+
+  @@index([status])
+}
+
+model DocumentChunk {
+  id         String   @id @default(cuid())
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  chunkIndex Int // 0-based position within the document (global order)
+  content    String // the actual chunk text sent to the LLM as context
+  pageNumber Int? // 1-based page this chunk came from, null if unknown (txt files)
+  tokenCount Int? // rough token estimate, used for prompt-budgeting
+
+  // pgvector column — not managed by Prisma Client directly, see note above.
+  embedding Unsupported("vector(1536)")?
+
+  createdAt DateTime @default(now())
+
+  @@index([documentId])
+}
+
+model Conversation {
+  id        String   @id @default(cuid())
+  title     String? // derived from the first question, editable later
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  messages Message[]
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  role    MessageRole
+  content String
+
+  // Snapshot of the sources used to ground this answer (only set for
+  // ASSISTANT messages). Stored as JSON so history stays self-contained
+  // even if the underlying document/chunk is later deleted.
+  sources Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([conversationId])
+}
