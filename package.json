@@ -2,7 +2,7 @@
   "name": "rag-document-chatbot",
   "version": "1.0.0",
   "private": true,
-  "scripts": {
+ "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -10,9 +10,10 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "postinstall": "prisma generate",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "db:setup": "prisma migrate deploy && npx tsx prisma/setup-pgvector.ts"
+    "db:setup": "prisma migrate deploy"
   },
   "dependencies": {
     "@prisma/client": "^5.20.0",
