@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import DocumentUpload from "@/components/DocumentUpload";
 import DocumentList, { type DocumentSummary } from "@/components/DocumentList";
 import ChatWindow from "@/components/ChatWindow";
+import GitHubImport from "@/components/GitHubImport";
 
 export default function HomePage() {
   const [documents, setDocuments] = useState<DocumentSummary[]>([]);
@@ -26,6 +27,7 @@ export default function HomePage() {
           <p className="text-xs text-slate-400">Ask questions grounded in your own documents.</p>
         </div>
         <DocumentUpload onUploaded={refreshDocuments} />
+        <GitHubImport onImported={refreshDocuments} />
         <div className="flex-1">
           <h2 className="mb-2 text-sm font-medium text-slate-600">Documents</h2>
           <DocumentList documents={documents} onDeleted={refreshDocuments} />
