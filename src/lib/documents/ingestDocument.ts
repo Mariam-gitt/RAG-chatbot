@@ -1,15 +1,18 @@
 import { prisma } from "@/lib/prisma";
 import { extractText } from "@/lib/extraction/extractText";
 import { chunkDocument } from "@/lib/chunking/chunkText";
+import { chunkCode } from "@/lib/chunking/chunkCode";
 import { generateEmbeddings } from "@/lib/embeddings/generateEmbeddings";
 import { toPgVectorLiteral } from "@/lib/embeddings/pgvector";
 import { randomUUID } from "crypto";
 
 export interface IngestDocumentInput {
   fileName: string;
-  fileType: "pdf" | "txt";
+  fileType: "pdf" | "txt" | "md";
   fileSize: number;
   buffer: Buffer;
+  source?: "upload" | "github" | "notion"; // where it came from (default: upload)
+  sourceUrl?: string; // link back to the original file/page
 }
 
 /**
@@ -31,6 +34,8 @@ export async function ingestDocument(input: IngestDocumentInput) {
       fileName: input.fileName,
       fileType: input.fileType,
       fileSize: input.fileSize,
+      source: input.source ?? "upload",
+      sourceUrl: input.sourceUrl ?? null,
       status: "PROCESSING",
     },
   });
@@ -40,7 +45,12 @@ export async function ingestDocument(input: IngestDocumentInput) {
     const extracted = await extractText(input.buffer, input.fileType);
 
     // 2. Split into overlapping chunks, tagged with their source page.
-    const chunks = chunkDocument(extracted.pages);
+    // GitHub files use a code-aware chunker (keeps line breaks/indentation);
+    // everything else uses the existing chunker, unchanged.
+    const chunks =
+      input.source === "github"
+        ? chunkCode(extracted.pages, input.fileName)
+        : chunkDocument(extracted.pages);
     if (chunks.length === 0) {
       throw new Error("No text could be chunked from this document.");
     }
