@@ -9,9 +9,9 @@ import type { ExtractedDocument, ExtractedPage } from "@/lib/types";
  */
 export async function extractText(
   buffer: Buffer,
-  extension: "pdf" | "txt"
+  extension: "pdf" | "txt" | "md"
 ): Promise<ExtractedDocument> {
-  if (extension === "txt") {
+  if (extension === "txt" || extension === "md") {
     return extractFromTxt(buffer);
   }
   return extractFromPdf(buffer);
