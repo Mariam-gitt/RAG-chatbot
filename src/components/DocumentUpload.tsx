@@ -44,7 +44,7 @@ export default function DocumentUpload({ onUploaded }: DocumentUploadProps) {
         <input
           ref={inputRef}
           type="file"
-          accept=".pdf,.txt"
+          accept=".pdf,.txt,.md"
           onChange={handleFileChange}
           disabled={uploading}
           className="block w-full cursor-pointer rounded-md border border-slate-300 bg-white text-sm text-slate-600 file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-brand-500 file:px-3 file:py-2 file:text-white hover:file:bg-brand-600 disabled:opacity-50"
@@ -52,7 +52,7 @@ export default function DocumentUpload({ onUploaded }: DocumentUploadProps) {
       </label>
       {uploading && <p className="text-sm text-slate-500">Uploading and processing…</p>}
       {error && <p className="text-sm text-red-600">{error}</p>}
-      <p className="text-xs text-slate-400">PDF or TXT, up to 10MB.</p>
+      <p className="text-xs text-slate-400">PDF, TXT or Markdown, up to 10MB.</p>
     </div>
   );
 }
