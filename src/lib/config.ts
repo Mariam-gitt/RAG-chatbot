@@ -74,7 +74,7 @@ export const config = {
 
   uploads: {
     maxFileSizeBytes: intEnv("MAX_FILE_SIZE_MB", 10) * 1024 * 1024,
-    allowedExtensions: ["pdf", "txt"] as const,
+    allowedExtensions: ["pdf", "txt", "md"] as const,
   },
 
   rateLimit: {

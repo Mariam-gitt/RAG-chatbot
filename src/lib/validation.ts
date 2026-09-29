@@ -10,7 +10,7 @@ export interface FileValidationInput {
 }
 
 export type FileValidationResult =
-  | { valid: true; extension: "pdf" | "txt" }
+  | { valid: true; extension: "pdf" | "txt" | "md" }
   | { valid: false; error: string };
 
 /**
@@ -23,8 +23,8 @@ export type FileValidationResult =
 export function validateUploadedFile(input: FileValidationInput): FileValidationResult {
   const extension = input.fileName.split(".").pop()?.toLowerCase();
 
-  if (!extension || !config.uploads.allowedExtensions.includes(extension as "pdf" | "txt")) {
-    return { valid: false, error: "Only .pdf and .txt files are supported." };
+  if (!extension || !config.uploads.allowedExtensions.includes(extension as "pdf" | "txt" | "md")) {
+    return { valid: false, error: "Only .pdf, .txt and .md files are supported." };
   }
 
   if (input.fileSize <= 0 || input.buffer.length === 0) {
@@ -36,7 +36,7 @@ export function validateUploadedFile(input: FileValidationInput): FileValidation
     return { valid: false, error: `File exceeds the ${maxMb}MB size limit.` };
   }
 
-  return { valid: true, extension: extension as "pdf" | "txt" };
+  return { valid: true, extension: extension as "pdf" | "txt" | "md" };
 }
 
 // --- API request validation --------------------------------------------
