@@ -31,11 +31,13 @@ enum MessageRole {
 model Document {
   id           String         @id @default(cuid())
   fileName     String
-  fileType     String // "pdf" | "txt"
+  fileType     String // "pdf" | "txt" | "md"
   fileSize     Int // bytes, validated on upload
   status       DocumentStatus @default(PROCESSING)
   pageCount    Int? // known for PDFs, null for plain text
   errorMessage String? // populated when status = FAILED
+  source       String         @default("upload") // "upload" | "github" | "notion"
+  sourceUrl    String? // link back to the original file/page (null for uploads)
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 
